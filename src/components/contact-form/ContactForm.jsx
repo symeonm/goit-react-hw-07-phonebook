@@ -1,11 +1,11 @@
 import { nanoid } from 'nanoid';
 import { useDispatch } from 'react-redux';
-import { addContact } from 'redux/contactSlice';
+import { addContact } from '../../redux/operation';
 import { useSelector } from 'react-redux';
 
 export default function FormAdd() {
   const dispatch = useDispatch();
-  const contact = useSelector(state => state.contacts.contact);
+  const contact = useSelector(state => state.contacts.items);
 
   const handleSubmit = e => {
     e.preventDefault();
@@ -13,17 +13,18 @@ export default function FormAdd() {
 
     const nameContact = contact.find(
       obj =>
-        obj.nameValue.toLowerCase() === form.elements.name.value.toLowerCase()
+        obj.name.toLowerCase() === form.elements.name.value.toLowerCase()
     );
 
     if (!nameContact) {
       dispatch(
         addContact({
-          nameValue: form.elements.name.value,
-          numberValue: form.elements.number.value,
-          idValue: nanoid(),
+          name: form.elements.name.value,
+          phone: form.elements.number.value,
+          id: nanoid(),
         })
       );
+
       reset(form);
       return;
     } else {

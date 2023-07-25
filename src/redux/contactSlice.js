@@ -1,59 +1,46 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { persistReducer } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
+import { addContact, fetchContacts, deleteContact } from './operation';
 
+const handlePending = state => {
+  state.isLoading = true;
+};
+
+const handleRejected = (state, action) => {
+  state.isLoading = false;
+  state.error = action.payload;
+};
+
+const handleAddContact = (state, action) => {
+  state.isLoading = false;
+  state.items.push(action.payload);
+};
 const contactSlice = createSlice({
   name: 'contacts',
   initialState: {
-    contact: [],
+    items: [],
+    isLoading: false,
+    error: null,
   },
-  reducers: {
-    addContact(state, action) {
-      return {
-        ...state,
-        contact: [...state.contact, action.payload],
-      };
+  extraReducers: {
+    [fetchContacts.pending]: handlePending,
+    [fetchContacts.fulfilled](state, action) {
+      state.isLoading = false;
+      state.items = action.payload;
+      state.error = null;
     },
-    deleteContact(state, action) {
-      return {
-        ...state,
-        contact: action.payload,
-      };
+    [fetchContacts.rejected]: handleRejected,
+    [addContact.pending]: handlePending,
+    [addContact.fulfilled]: handleAddContact,
+    [addContact.rejected]: handleRejected,
+    [deleteContact.pending]: handlePending,
+    [deleteContact.fulfilled](state, action) {
+      state.isLoading = false;
+      state.error = null;
+      const updContacts = state.items.filter(obj => obj.id !== action.payload);
+      state.items.splice(updContacts, 1)
     },
+    [deleteContact.rejected]: handleRejected
   },
 });
 
-const persistConfig = {
-  key: 'root',
-  storage,
-  // whitelist: ['contact'],
-};
-
-export const contactReducer = persistReducer(
-  persistConfig,
-  contactSlice.reducer
-);
-
-export const { addContact, deleteContact } = contactSlice.actions;
-
-// const contactState = { contact: [] };
-
-// export const addContact = createAction('contactList/addContact');
-
-// export const deleteContact = createAction('contactList/deleteContact');
-
-// export const contactReducer = createReducer(contactState, builder =>
-//   builder
-//     .addCase(addContact, (state, action) => {
-//       return {
-//         ...state,
-//         contact: [...state.contact, action.payload],
-//       };
-//     })
-//     .addCase(deleteContact, (state, action) => {
-//       return {
-//         ...state,
-//         contact: action.payload,
-//       };
-//     })
-// );
+export const contactReducer = contactSlice.reducer;
